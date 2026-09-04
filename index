@@ -3,118 +3,212 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة تحكم جهاز الأمان</title>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <title>نظام حماية متجر Pro Ultra</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-    body { background: #0f172a; color: #f8fafc; min-height: 100vh; padding: 15px; }
-    header { text-align: center; margin-bottom: 20px; padding: 10px; border-bottom: 1px solid #1e293b; }
+    :root {
+      --bg-dark: #070a12;
+      --card-bg: #0d1322;
+      --card-border: #1e293b;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #38bdf8;
+      --danger-red: #ef4444;
+      --success-green: #10b981;
+      --warning-gold: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding: 15px; display: flex; justify-content: center; }
+
+    .app-container { width: 100%; max-width: 480px; margin: 0 auto; padding-bottom: 80px; transition: all 0.3s ease; }
     
-    .ip-card { background: #1e293b; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
-    .ip-card input { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: #fff; }
-    
-    nav { display: flex; background: #1e293b; border-radius: 10px; overflow: hidden; margin-bottom: 20px; }
-    nav button { flex: 1; padding: 12px; border: none; background: transparent; color: #94a3b8; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-    nav button.active { background: #3b82f6; color: white; }
+    @media (min-width: 768px) {
+      .app-container { max-width: 900px; }
+      .grid-layout { display: grid; grid-template-columns: 280px 1fr; gap: 20px; }
+      nav { position: relative !important; bottom: 0 !important; transform: none !important; width: 100% !important; }
+    }
+
+    header { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; margin-bottom: 15px; }
+    .brand { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+    .device-badge { background: rgba(59, 130, 246, 0.15); color: var(--accent-cyan); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+    #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(7, 10, 18, 0.95); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .login-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 35px 25px; border-radius: 24px; text-align: center; width: 90%; max-width: 360px; }
+
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 20px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 10px 25px -10px rgba(0,0,0,0.5); }
+    .alarm-banner { padding: 18px; border-radius: 18px; text-align: center; font-weight: bold; font-size: 17px; margin-bottom: 15px; transition: all 0.3s; }
+    .armed { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1.5px solid var(--danger-red); }
+    .disarmed { background: rgba(16, 185, 129, 0.1); color: #34d399; border: 1.5px solid var(--success-green); }
+
+    .grid-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+    .btn { width: 100%; padding: 14px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; color: white; font-size: 14px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:active { transform: scale(0.97); }
+    .btn-arm { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .btn-disarm { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-muted); }
+    .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .btn-purple { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+
+    input[type=range], input[type=password], input[type=text] { width: 100%; padding: 12px; margin-top: 8px; background: var(--bg-dark); border: 1px solid var(--card-border); border-radius: 10px; color: #fff; outline: none; }
+
+    nav { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: calc(100% - 30px); max-width: 500px; display: flex; background: rgba(13, 19, 34, 0.95); backdrop-filter: blur(16px); border: 1px solid var(--card-border); border-radius: 20px; padding: 6px; z-index: 100; }
+    nav button { flex: 1; padding: 10px 6px; border: none; background: transparent; color: var(--text-muted); font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 14px; transition: 0.3s; }
+    nav button.active { background: var(--accent-blue); color: white; }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    .card { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-    .btn { width: 100%; padding: 12px; margin: 8px 0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; font-size: 16px; }
-    .btn-arm { background: #ef4444; } .btn-disarm { background: #10b981; }
-    .btn-save { background: #3b82f6; } .btn-warning { background: #f59e0b; }
-
-    .status-badge { text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 18px; margin-bottom: 15px; }
-    .armed { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
-    .disarmed { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
-
-    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #334155; }
-    input[type=range], input[type=password], input[type=text] { width: 100%; padding: 10px; margin-top: 8px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; }
-
-    /* Modal Passcode Overlay */
-    #loginOverlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #0f172a; display: flex; align-items: center; justify-content: center; z-index: 999; }
-    .login-box { background: #1e293b; padding: 30px; border-radius: 12px; text-align: center; max-width: 350px; width: 90%; }
+    /* جدول شبكات الواي فاي */
+    .wifi-list { margin-top: 15px; max-height: 250px; overflow-y: auto; }
+    .wifi-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--card-border); font-size: 13px; }
+    .wifi-item:last-child { border-bottom: none; }
+    .wifi-info { display: flex; flex-direction: column; gap: 3px; }
   </style>
 </head>
 <body>
 
-  <!-- شاشة إدخال الباسورد عند الدخول -->
   <div id="loginOverlay">
-    <div class="login-box">
-      <i class="fa-solid fa-lock fa-3x" style="color: #3b82f6; margin-bottom: 15px;"></i>
-      <h3>أدخل رمز PIN لتسجيل الدخول</h3>
-      <input type="password" id="loginPin" placeholder="****" style="text-align: center; font-size: 20px;">
-      <button class="btn btn-save" style="margin-top: 15px;" onclick="checkLogin()">دخول</button>
-      <p id="loginError" style="color:#f87171; margin-top: 10px; display:none;">رمز PIN غير صحيح!</p>
+    <div class="login-card">
+      <i class="fa-solid fa-shield-halved fa-3x" style="color: var(--accent-blue); margin-bottom: 15px;"></i>
+      <h3>نظام حماية متجر</h3>
+      <p style="color: var(--text-muted); font-size: 13px; margin-top: 5px;">أدخل رمز PIN لتسجيل الدخول</p>
+      <input type="password" id="loginPin" placeholder="****" style="text-align: center; font-size: 22px; letter-spacing: 5px;">
+      <button class="btn btn-primary" style="margin-top: 18px;" onclick="checkLogin()">دخول</button>
+      <p id="loginError" style="color: var(--danger-red); font-size: 12px; margin-top: 10px; display:none;">الرمز غير صحيح!</p>
     </div>
   </div>
 
-  <header>
-    <h2><i class="fa-solid fa-shield-halved"></i>نظام حماية متجر </h2>
-  </header>
+  <div class="app-container">
+    <header>
+      <div class="brand"><i class="fa-solid fa-microchip" style="color: var(--accent-cyan);"></i> ESP-Guard</div>
+      <div class="device-badge" id="deviceType">جاري التعرف...</div>
+    </header>
 
-  <div class="ip-card">
-    <i class="fa-solid fa-network-wired"></i>
-    <input type="text" id="espIp" placeholder="أدخل IP الجهاز (مثال: 192.168.1.50)">
-    <button class="btn btn-save" style="width: auto; padding: 10px 20px;" onclick="saveIp()">حفظ</button>
-  </div>
+    <div class="grid-layout">
+      <div>
+        <div class="card" style="padding: 12px;">
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="espIp" placeholder="192.168.1.50" style="margin-top:0;">
+            <button class="btn btn-primary" style="width: auto; padding: 0 15px;" onclick="saveIp()">ربط</button>
+          </div>
+        </div>
 
-  <nav>
-    <button class="active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-gauge"></i> الرئيسية</button>
-    <button onclick="switchTab('sensors', this)"><i class="fa-solid fa-sliders"></i> الحساسات</button>
-    <button onclick="switchTab('settings', this)"><i class="fa-solid fa-gear"></i> الإعدادات</button>
-  </nav>
+        <nav>
+          <button class="active" onclick="switchTab('dashboard', this)"><i class="fa-solid fa-gauge"></i> الرئيسية</button>
+          <button onclick="switchTab('wifiScan', this)"><i class="fa-solid fa-wifi"></i> الشبكات</button>
+          <button onclick="switchTab('sensors', this)"><i class="fa-solid fa-sliders"></i> الحساسات</button>
+          <button onclick="switchTab('settings', this)"><i class="fa-solid fa-gear"></i> الإعدادات</button>
+        </nav>
+      </div>
 
-  <!-- التبويب 1: الرئيسية -->
-  <div id="dashboard" class="tab-content active">
-    <div id="statusBadge" class="status-badge disarmed">جاري الاتصال...</div>
-    
-    <div class="card">
-      <button class="btn btn-arm" onclick="sendCmd('/arm')"><i class="fa-solid fa-lock"></i> تفعيل الإنذار (ARM)</button>
-      <button class="btn btn-disarm" onclick="sendCmd('/disarm')"><i class="fa-solid fa-lock-open"></i> تعطيل الإنذار (DISARM)</button>
-    </div>
+      <div>
+        <!-- الرئيسية -->
+        <div id="dashboard" class="tab-content active">
+          <div id="statusBanner" class="alarm-banner disarmed">
+            <i class="fa-solid fa-spinner fa-spin"></i> جاري الاتصال...
+          </div>
 
-    <div class="card">
-      <div class="info-row"><span>حالة الباب (D5):</span><b id="doorVal">-</b></div>
-      <div class="info-row"><span>قراءة الحساس (POT A0):</span><b id="potVal">-</b></div>
-      <div class="info-row"><span>قوة إشارة الواي فاي:</span><b id="rssiVal">-</b></div>
-    </div>
-  </div>
+          <div class="grid-btns">
+            <button class="btn btn-arm" onclick="sendCmd('/arm')"><i class="fa-solid fa-lock"></i> تفعيل (ARM)</button>
+            <button class="btn btn-disarm" onclick="sendCmd('/disarm')"><i class="fa-solid fa-lock-open"></i> تعطيل (DISARM)</button>
+          </div>
 
-  <!-- التبويب 2: الحساسات -->
-  <div id="sensors" class="tab-content">
-    <div class="card">
-      <h3><i class="fa-solid fa-sliders"></i> حد حساسية الحركة (Threshold)</h3>
-      <br>
-      <label>القيمة الحالية: <b id="sliderText" style="color:#3b82f6;">-</b></label>
-      <input type="range" id="threshRange" min="0" max="1023" onchange="sendCmd('/setThreshold?value=' + this.value)" oninput="document.getElementById('sliderText').innerText=this.value">
-    </div>
-  </div>
+          <div class="card">
+            <h4 style="margin-bottom: 10px; font-size: 13px;"><i class="fa-solid fa-chart-line" style="color: var(--accent-blue);"></i> مخطط حركة الحساس (A0)</h4>
+            <canvas id="motionChart" height="110"></canvas>
+          </div>
 
-  <!-- التبويب 3: الإعدادات -->
-  <div id="settings" class="tab-content">
-    <div class="card">
-      <h3><i class="fa-solid fa-key"></i> تغيير رمز الـ PIN</h3>
-      <input type="password" id="pinInput" placeholder="رمز PIN الجديد">
-      <button class="btn btn-save" onclick="changePin()">حفظ الرمز</button>
-    </div>
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #161f32;"><span>حالة الباب (D5):</span><b id="doorVal">-</b></div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #161f32;"><span>قراءة الحساس (POT A0):</span><b id="potVal">-</b></div>
+            <div style="display: flex; justify-content: space-between; padding: 8px 0;"><span>إشارة الواي فاي:</span><b id="rssiVal">-</b></div>
+          </div>
+        </div>
 
-    <div class="card">
-      <h3><i class="fa-solid fa-wifi"></i> إعدادات الواي فاي</h3>
-      <input type="text" id="ssidInput" placeholder="اسم الشبكة (SSID)">
-      <input type="password" id="passInput" placeholder="كلمة السر الجديدة">
-      <button class="btn btn-warning" onclick="changeWifi()">تحديث وإعادة تشغيل الجهاز</button>
+        <!-- شبكات الواي فاي -->
+        <div id="wifiScan" class="tab-content">
+          <div class="card">
+            <h3><i class="fa-solid fa-tower-broadcast" style="color: var(--accent-cyan);"></i> البحث عن شبكات قريبة</h3>
+            <p style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">اضغط لبدء البحث عن الواي فاي المحيط بالجهاز</p>
+            <button class="btn btn-primary" style="margin-top: 15px;" onclick="scanNetworks()"><i class="fa-solid fa-magnifying-glass"></i> بحث عن الشبكات</button>
+            
+            <div id="wifiList" class="wifi-list">
+              <p style="text-align: center; color: var(--text-muted); padding: 15px; font-size: 13px;">اضغط "بحث" لعرض الشبكات القريبة...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- الحساسات -->
+        <div id="sensors" class="tab-content">
+          <div class="card">
+            <h3><i class="fa-solid fa-sliders" style="color: var(--accent-blue);"></i> حساسية التنبيه (EEPROM)</h3>
+            <br>
+            <div style="display: flex; justify-content: space-between;">
+              <span>الحد الحالي:</span>
+              <b id="sliderText" style="color: var(--accent-cyan);">-</b>
+            </div>
+            <input type="range" id="threshRange" min="0" max="1023" onchange="sendCmd('/setThreshold?value=' + this.value)" oninput="document.getElementById('sliderText').innerText=this.value">
+          </div>
+        </div>
+
+        <!-- الإعدادات والترقية -->
+        <div id="settings" class="tab-content">
+          <div class="card">
+            <h3><i class="fa-solid fa-file-arrow-up" style="color: #a855f7;"></i> الترقية اللاسلكية (OTA Firmware)</h3>
+            <p style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">يمكنك اختيار ملف الكود المجمع (تنسيق <b>.bin</b>) وتحديث النظام دون كابلات</p>
+            <button class="btn btn-purple" style="margin-top: 12px;" onclick="openOtaPage()"><i class="fa-solid fa-upload"></i> فتح صفحة رفع الكود</button>
+          </div>
+
+          <div class="card">
+            <h3><i class="fa-solid fa-key" style="color: var(--accent-blue);"></i> تغيير رمز PIN</h3>
+            <input type="password" id="pinInput" placeholder="رمز جديد">
+            <button class="btn btn-primary" style="margin-top: 10px;" onclick="changePin()">حفظ الرمز</button>
+          </div>
+
+          <div class="card">
+            <h3><i class="fa-solid fa-wifi" style="color: var(--accent-blue);"></i> إعدادات الواي فاي</h3>
+            <input type="text" id="ssidInput" placeholder="اسم الشبكة">
+            <input type="password" id="passInput" placeholder="كلمة المرور">
+            <button class="btn btn-primary" style="margin-top: 10px; background: var(--warning-gold);" onclick="changeWifi()">تحديث وإعادة التشغيل</button>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
   <script>
     let getIp = () => localStorage.getItem('esp_ip') || '';
-    let serverPin = "1234"; // سيتم تحديثه تلقائياً من الجهاز
+    let serverPin = "1234";
+
+    function detectDevice() {
+      const ua = navigator.userAgent;
+      const width = window.innerWidth;
+      const badge = document.getElementById('deviceType');
+
+      if (/ipad|tablet/i.test(ua) || (width >= 768 && width <= 1024)) {
+        badge.innerHTML = '<i class="fa-solid fa-tablet-screen-button"></i> آيباد / تابلت';
+      } else if (/mobile/i.test(ua) || width < 768) {
+        badge.innerHTML = '<i class="fa-solid fa-mobile-screen-button"></i> هاتف';
+      } else {
+        badge.innerHTML = '<i class="fa-solid fa-desktop"></i> كومبيوتر';
+      }
+    }
+
+    const ctx = document.getElementById('motionChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: Array(10).fill(''),
+        datasets: [{ data: Array(10).fill(0), borderColor: '#3b82f6', borderWidth: 2, fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.3 }]
+      },
+      options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { min: 0, max: 1023 } } }
+    });
 
     function checkLogin() {
-      let pin = document.getElementById('loginPin').value;
-      if(pin === serverPin) {
+      if(document.getElementById('loginPin').value === serverPin) {
         document.getElementById('loginOverlay').style.display = 'none';
       } else {
         document.getElementById('loginError').style.display = 'block';
@@ -123,11 +217,7 @@
 
     function saveIp() {
       let ip = document.getElementById('espIp').value.trim();
-      if(ip) {
-        localStorage.setItem('esp_ip', ip);
-        alert('تم حفظ IP بنجاح!');
-        refreshData();
-      }
+      if(ip) { localStorage.setItem('esp_ip', ip); refreshData(); }
     }
 
     function switchTab(tabId, btn) {
@@ -139,25 +229,69 @@
 
     function sendCmd(path) {
       let ip = getIp();
-      if(!ip) return alert('يرجى إدخال IP الجهاز أولاً!');
+      if(!ip) return alert('أدخل IP أولاً');
       fetch(`http://${ip}${path}`).catch(e => console.error(e));
+    }
+
+    // بحث عن الشبكات القريبة
+    function scanNetworks() {
+      let ip = getIp();
+      if(!ip) return alert('أدخل IP أولاً');
+
+      const container = document.getElementById('wifiList');
+      container.innerHTML = '<p style="text-align: center; color: var(--accent-cyan); padding: 15px; font-size: 13px;"><i class="fa-solid fa-spinner fa-spin"></i> جاري فحص الشبكات المحيطة...</p>';
+
+      fetch(`http://${ip}/scan`)
+        .then(res => res.json())
+        .then(data => {
+          if(data.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-muted); padding: 15px; font-size: 13px;">لم يتم العثور على شبكات قريبة!</p>';
+            return;
+          }
+          let html = '';
+          data.forEach(item => {
+            html += `
+              <div class="wifi-item">
+                <div class="wifi-info">
+                  <b style="color: #fff;">${item.ssid || 'شبكة مخفية'}</b>
+                  <span style="color: var(--text-muted); font-size: 11px;">تشفير: ${item.enc}</span>
+                </div>
+                <div style="text-align: left;">
+                  <span style="color: var(--accent-cyan); font-weight: bold; font-size: 12px;">${item.quality}% (${item.rssi}dBm)</span>
+                  <br>
+                  <button style="background: none; border: none; color: var(--accent-blue); font-size: 11px; cursor: pointer; text-decoration: underline;" onclick="selectWifi('${item.ssid}')">اختيار الشبكة</button>
+                </div>
+              </div>
+            `;
+          });
+          container.innerHTML = html;
+        })
+        .catch(() => {
+          container.innerHTML = '<p style="text-align: center; color: var(--danger-red); padding: 15px; font-size: 13px;">فشل الاتصال بالجهاز أثناء الفحص!</p>';
+        });
+    }
+
+    function selectWifi(ssid) {
+      switchTab('settings', document.querySelectorAll('nav button')[3]);
+      document.getElementById('ssidInput').value = ssid;
+      document.getElementById('passInput').focus();
+    }
+
+    // فتح صفحة رفع التحديثات OTA
+    function openOtaPage() {
+      let ip = getIp();
+      if(!ip) return alert('أدخل IP أولاً');
+      window.open(`http://${ip}/update`, '_blank');
     }
 
     function changePin() {
       let p = document.getElementById('pinInput').value;
-      if(p) {
-        sendCmd('/setPin?value=' + encodeURIComponent(p));
-        alert('تم حفظ PIN الجديد!');
-      }
+      if(p) sendCmd('/setPin?value=' + encodeURIComponent(p));
     }
 
     function changeWifi() {
-      let s = document.getElementById('ssidInput').value;
-      let p = document.getElementById('passInput').value;
-      if(s && p) {
-        sendCmd(`/setWifi?ssid=${encodeURIComponent(s)}&pass=${encodeURIComponent(p)}`);
-        alert('تم حفظ الإعدادات! الجهاز سيعيد التشغيل للاتصال بالشبكة الجديدة.');
-      }
+      let s = document.getElementById('ssidInput').value, p = document.getElementById('passInput').value;
+      if(s && p) sendCmd(`/setWifi?ssid=${encodeURIComponent(s)}&pass=${encodeURIComponent(p)}`);
     }
 
     function refreshData() {
@@ -167,27 +301,35 @@
       fetch(`http://${ip}/api/data`)
         .then(res => res.json())
         .then(data => {
-          serverPin = data.pin; // مزامنة الـ PIN من الجهاز
-          const sb = document.getElementById('statusBadge');
+          serverPin = data.pin;
+          const sb = document.getElementById('statusBanner');
+          
           if(data.armed) {
-            sb.className = 'status-badge armed';
-            sb.innerText = 'نظام الأمان: مُفعل 🛡️';
+            sb.className = 'alarm-banner armed';
+            sb.innerHTML = '<i class="fa-solid fa-shield-halved"></i> النظام: مُفعل (ARM)';
           } else {
-            sb.className = 'status-badge disarmed';
-            sb.innerText = 'نظام الأمان: معطل 🔓';
+            sb.className = 'alarm-banner disarmed';
+            sb.innerHTML = '<i class="fa-solid fa-lock-open"></i> النظام: معطل (DISARM)';
           }
 
-          document.getElementById('doorVal').innerText = data.door ? "مفتوح 🚪" : "مغلق 🔒";
+          document.getElementById('doorVal').innerText = data.door ? "مفتوح 🚪" : "مغلق ✅";
           document.getElementById('potVal').innerText = data.pot;
-          document.getElementById('rssiVal').innerText = `${data.rssi} dBm (${data.quality}%)`;
+          document.getElementById('rssiVal').innerText = `${data.quality}%`;
           document.getElementById('threshRange').value = data.thresh;
           document.getElementById('sliderText').innerText = data.thresh;
+
+          chart.data.datasets[0].data.push(data.pot);
+          chart.data.datasets[0].data.shift();
+          chart.update();
         })
         .catch(() => {
-          document.getElementById('statusBadge').innerText = 'تعذر الاتصال بالجهاز ❌';
-          document.getElementById('statusBadge').className = 'status-badge armed';
+          document.getElementById('statusBanner').className = 'alarm-banner armed';
+          document.getElementById('statusBanner').innerText = 'غير متصل بالجهاز ❌';
         });
     }
+
+    window.addEventListener('resize', detectDevice);
+    detectDevice();
 
     if(getIp()) document.getElementById('espIp').value = getIp();
     setInterval(refreshData, 2000);
